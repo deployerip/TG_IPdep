@@ -19,14 +19,19 @@ jobs:
       IPV4_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv4.json"
       IPV6_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv6.json"
       FULL_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/full"
-      LITE_URL: "https://raw.githubusercontent.com/ircfspace/      - name: Checkout Repository
+      LITE_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/lite"
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       # Step 2: Download Files
       - name: Download Files
         run: |
           curl --retry 3 -o export.json $EXPORT_URL
-          curl --retry 3 -o ipv4.json $IPV
+          curl --retry 3 -o ipv4.json $IPV4_URL
+          curl --retry 3 -o ipv6.json $IPV6_URL
           curl --retry 3 -o full $FULL_URL
           curl --retry 3 -o lite $LITE_URL
 
