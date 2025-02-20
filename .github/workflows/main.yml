@@ -52,6 +52,11 @@ jobs:
                 caption="📑 *Lite Data File*\n\nStreamlined dataset for quick analysis." ;;
             esac
 
+            if [ ! -f "$file" ]; then
+              echo "File $file does not exist."
+              exit 1
+            fi
+
             response=$(curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="$CHAT_ID" \
               -F document=@$file \
