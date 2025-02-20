@@ -65,6 +65,8 @@ jobs:
 
             if [ "$response" -ne 200 ]; then
               echo "Failed to send $file to Telegram. HTTP response code: $response"
+              echo "File: $file"
+              echo "Caption: $caption"
               exit 1
             fi
           done
