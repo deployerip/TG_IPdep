@@ -47,7 +47,7 @@ jobs:
               ipv6.json)
                 caption="🌍 *IPv6 Addresses*\n\nList of IPv6 addresses for network analysis." ;;
               full)
-                caption="📋 *Full Data File*\n\nDetailed dataset for extensive analysis." ;;
+                caption="📋 *Full Data File*"\n\n"Detailed dataset for extensive analysis." ;;
               lite)
                 caption="📑 *Lite Data File*\n\nStreamlined dataset for quick analysis." ;;
             esac
