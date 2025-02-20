@@ -41,22 +41,22 @@ jobs:
           for file in export.json ipv4.json ipv6.json full lite; do
             case $file in
               export.json)
-                caption="📂 *Export Data File*\\n\\nComprehensive dataset for analysis." ;;
+                caption="📂 *Export Data File*<br><br>Comprehensive dataset for analysis." ;;
               ipv4.json)
-                caption="🌐 *IPv4 Addresses*\\n\\nList of IPv4 addresses for network analysis." ;;
+                caption="🌐 *IPv4 Addresses*<br><br>List of IPv4 addresses for network analysis." ;;
               ipv6.json)
-                caption="🌍 *IPv6 Addresses*\\n\\nList of IPv6 addresses for network analysis." ;;
+                caption="🌍 *IPv6 Addresses*<br><br>List of IPv6 addresses for network analysis." ;;
               full)
-                caption="📋 *Full Data File*\\n\\nDetailed dataset for extensive analysis." ;;
+                caption="📋 *Full Data File*<br><br>Detailed dataset for extensive analysis." ;;
               lite)
-                caption="📑 *Lite Data File*\\n\\nStreamlined dataset for quick analysis." ;;
+                caption="📑 *Lite Data File*<br><br>Streamlined dataset for quick analysis." ;;
             esac
 
             response=$(curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="$CHAT_ID" \
               -F document=@$file \
               -F caption="$caption" \
-              -F parse_mode="Markdown")
+              -F parse_mode="HTML")
 
             if [ "$response" -ne 200 ]; then
               echo "Failed to send $file to Telegram. HTTP response code: $response"
