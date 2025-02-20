@@ -41,7 +41,7 @@ jobs:
           for file in export.json ipv4.json ipv6.json full lite; do
             case $file in
               export.json)
-                caption="📂 *Export Data File* \n \nComprehensive dataset for analysis." ;;
+                caption="📂 *Export Data File* \n \n Comprehensive dataset for analysis." ;;
               ipv4.json)
                 caption="🌐 *IPv4 Addresses*\n\nList of IPv4 addresses for network analysis." ;;
               ipv6.json)
