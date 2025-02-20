@@ -15,63 +15,51 @@ jobs:
     env:
       CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      FILES: export.json ipv4.json ipv6.json full lite # Define files in a variable
       EXPORT_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/export.json"
       IPV4_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv4.json"
       IPV6_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv6.json"
       FULL_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/full"
-      LITE_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/lite"
-
-    steps:
-      - name: Checkout Repository
+      LITE_URL: "https://raw.githubusercontent.com/ircfspace/      - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step 2: Download Files
       - name: Download Files
         run: |
-          curl --retry 3 -o export.json "$EXPORT_URL"
-          curl --retry 3 -o ipv4.json "$IPV4_URL"
-          curl --retry 3 -o ipv6.json "$IPV6_URL"
-          curl --retry 3 -o full "$FULL_URL"
-          curl --retry 3 -o lite "$LITE_URL"
+          curl --retry 3 -o export.json $EXPORT_URL
+          curl --retry 3 -o ipv4.json $IPV
+          curl --retry 3 -o full $FULL_URL
+          curl --retry 3 -o lite $LITE_URL
 
+      # Step 3: Send Files to Telegram
       - name: Send Files to Telegram
         run: |
-          for file in $FILES; do # Iterate over the FILES variable
-            case "$file" in # Quote the $file variable for safety
+          for file in export.json ipv4.json ipv6.json full lite; do
+            case $file in
               export.json)
-                caption="📂 *Export Data File* \n \n Comprehensive dataset for analysis." ;;
+                caption="📂 *Export Data File*\\n\\nComprehensive dataset for analysis." ;;
               ipv4.json)
-                caption="🌐 *IPv4 Addresses*\n\nList of IPv4 addresses for network analysis." ;;
+                caption="🌐 *IPv4 Addresses*\\n\\nList of IPv4 addresses for network analysis." ;;
               ipv6.json)
-                caption="🌍 *IPv6 Addresses*\n\nList of IPv6 addresses for network analysis." ;;
+                caption="🌍 *IPv6 Addresses*\\n\\nList of IPv6 addresses for network analysis." ;;
               full)
-                caption="📋 *Full Data File*\n\nDetailed dataset for extensive analysis." ;;
+                caption="📋 *Full Data File*\\n\\nDetailed dataset for extensive analysis." ;;
               lite)
-                caption="📑 *Lite Data File*\n\nStreamlined dataset for quick analysis." ;;
+                caption="📑 *Lite Data File*\\n\\nStreamlined dataset for quick analysis." ;;
             esac
 
-            # Use a more robust way to check for errors
-            curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+            response=$(curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="$CHAT_ID" \
-              -F document=@"$file" \
+              -F document=@$file \
               -F caption="$caption" \
-              -F parse_mode="Markdown" > /dev/null 2>&1  # Redirect output and errors
+              -F parse_mode="Markdown")
 
-            http_code=$(curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
-              -F chat_id="$CHAT_ID" \
-              -F document=@"$file" \
-              -F caption="$caption" \
-              -F parse_mode="Markdown" | grep -oP 'HTTP/\d\.\d (\d{3})' | awk '{print $2}')
-
-            if [[ "$http_code" != "200" ]]; then
-              echo "Failed to send $file to Telegram. HTTP response code: $http_code"
-              exit 1 # Stop the workflow if sending any file fails
+            if [ "$response" -ne 200 ]; then
+              echo "Failed to send $file to Telegram. HTTP response code: $response"
+              exit 1
             fi
-
-            echo "Successfully sent $file to Telegram." # Confirmation message
           done
 
+      # Step 4: Clean up
       - name: Clean up
-        if: always() # Always run cleanup, even if previous steps fail
         run: |
-          rm -f $FILES # Use the FILES variable for cleanup
+          rm -f export.json ipv4.json ipv6.json full lite
