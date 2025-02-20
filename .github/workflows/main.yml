@@ -1,0 +1,70 @@
+name: IP File Distribution
+
+on:
+  workflow_dispatch:  # Manual execution via GitHub interface
+  schedule:
+    - cron: '0 */3 * * *'  # Runs every 3 hours
+  push:  # Trigger when the repository is updated
+    branches:
+      - main  # Replace 'main' with your default branch if different
+
+jobs:
+  send-files:
+    runs-on: ubuntu-latest
+
+    env:
+      CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      EXPORT_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/export.json"
+      IPV4_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv4.json"
+      IPV6_URL: "https://raw.githubusercontent.com/ircfspace/cf2dns/refs/heads/master/list/ipv6.json"
+      FULL_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/full"
+      LITE_URL: "https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/lite"
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Download Files
+      - name: Download Files
+        run: |
+          curl --retry 3 -o export.json $EXPORT_URL
+          curl --retry 3 -o ipv4.json $IPV4_URL
+          curl --retry 3 -o ipv6.json $IPV6_URL
+          curl --retry 3 -o full $FULL_URL
+          curl --retry 3 -o lite $LITE_URL
+
+      # Step 3: Send Files to Telegram
+      - name: Send Files to Telegram
+        run: |
+          for file in export.json ipv4.json ipv6.json full lite; do
+            case $file in
+              export.json)
+                caption="📂 *Export Data File*\n\nComprehensive dataset for analysis." ;;
+              ipv4.json)
+                caption="🌐 *IPv4 Addresses*\n\nList of IPv4 addresses for network analysis." ;;
+              ipv6.json)
+                caption="🌍 *IPv6 Addresses*\n\nList of IPv6 addresses for network analysis." ;;
+              full)
+                caption="📋 *Full Data File*\n\nDetailed dataset for extensive analysis." ;;
+              lite)
+                caption="📑 *Lite Data File*\n\nStreamlined dataset for quick analysis." ;;
+            esac
+
+            response=$(curl --retry 3 -s -w "%{http_code}" -o /dev/null -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+              -F chat_id="$CHAT_ID" \
+              -F document=@$file \
+              -F caption="$caption" \
+              -F parse_mode="Markdown")
+
+            if [ "$response" -ne 200 ]; then
+              echo "Failed to send $file to Telegram. HTTP response code: $response"
+              exit 1
+            fi
+          done
+
+      # Step 4: Clean up
+      - name: Clean up
+        run: |
+          rm -f export.json ipv4.json ipv6.json full lite
